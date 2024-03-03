@@ -22,7 +22,7 @@ if __name__ == '__main__':
     # diff 1
     allowed_highway_types = set(["trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link", "secondary"])
     # diff 2
-    #allowed_highway_types = set(["trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link", "secondary", "tertiary_link", "residential", "tertiary"])
+    #allowed_highway_types = set(["trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link", "secondary", "tertiary_link", "residential", "tertiary", "unclassified"])
     waysByName = {}
     highwayTypes = set()
     waysUsed = set()
