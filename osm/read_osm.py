@@ -19,7 +19,7 @@ def get_osm_tile_image(x, y, zoom):
 
 def getImage(x_tile, y_tile, zoom_level):
     # x_tile, y_tile = latlon_to_tile(latitude, longitude, zoom_level)
-    folder_path = f"/Users/verwilst/PycharmProjects/mapQuiz/resources/images/{zoom_level}"
+    folder_path = f"resources/images/{zoom_level}"
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)  # Create the directory if it doesn't exist
 

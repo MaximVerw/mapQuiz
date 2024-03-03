@@ -15,9 +15,9 @@ class App(QMainWindow):
     def __init__(self, waysByName, defaults, area_in_scope):
         super().__init__()
         self.setWindowTitle("MapQuiz")
-        self.width = 1280
-        self.height = 720
-        self.scale = 2.
+        self.width = 1920
+        self.height = 1080
+        self.scale = 4.
         self.setGeometry(100, 100, self.width, self.height+55)  # Set the window size to 512 by 512 pixels
         self.defaults = defaults
         self.zoom_levels = [13, 14, 15, 16, 17, 18, 19]
@@ -35,17 +35,17 @@ class App(QMainWindow):
         # Set application icon
         icon = None
         if platform.system() == 'Darwin':
-            icon = QIcon("/Users/verwilst/PycharmProjects/mapQuiz/resources/logo/osm_logo.icns")
+            icon = QIcon("resources/logo/osm_logo.icns")
         elif platform.system() == 'Windows':
-            icon = QIcon("/Users/verwilst/PycharmProjects/mapQuiz/resources/logo/osm_logo.png")
+            icon = QIcon("resources/logo/osm_logo.png")
         self.setWindowIcon(icon)
 
         # Create progress bars
         self.progress_bar = QProgressBar(self)
-        self.progress_bar.setGeometry(self.width/2 - self.width*9/20, self.height - 50, self.width*9/10, 100)  # Adjust position and size as needed
+        self.progress_bar.setGeometry(int(self.width/2 - self.width*9/20), self.height - 50, int(self.width*9/10), 20)  # Adjust position and size as needed
 
         self.progress_bar_quiz = QProgressBar(self)
-        self.progress_bar_quiz.setGeometry(self.width/2 - self.width*9/20, self.height+40, self.width*9/10, 10)  # Adjust position and size as needed
+        self.progress_bar_quiz.setGeometry(int(self.width/2 - self.width*9/20), self.height+40, int(self.width*9/10), 10)  # Adjust position and size as needed
         self.progress_bar_quiz.hide()
 
         # Start image loading process in a separate thread
@@ -66,7 +66,7 @@ class App(QMainWindow):
         self.logo.setGeometry(0, 0, self.width, self.height)
 
         # Load the image
-        image_path = "/Users/verwilst/PycharmProjects/mapQuiz/resources/logo/osm_logo.png"  # Replace with the actual path to your image
+        image_path = "resources/logo/osm_logo.png"  # Replace with the actual path to your image
         pixmap = QPixmap(image_path)
         self.logo.setPixmap(pixmap.scaledToWidth(self.width//2))
 
@@ -80,7 +80,7 @@ class App(QMainWindow):
 
     def getNewStreet(self):
         self.hint = ""
-        self.progress_bar_quiz.setValue(len(self.quizmaster.guessed_streets)/len(self.quizmaster.waysByName)*100.)
+        self.progress_bar_quiz.setValue(int(len(self.quizmaster.guessed_streets)/len(self.quizmaster.waysByName)*100.))
         self.quizmaster.pollNewStreet()
         self.drawGeometry()
 
@@ -116,7 +116,7 @@ class App(QMainWindow):
     def create_text_box(self):
         # Create a text box
         self.text_box = QLineEdit(self)
-        self.text_box.setGeometry(self.width/20, self.height + 10, self.width*9/10, 25)
+        self.text_box.setGeometry(int(self.width/20), self.height + 10, int(self.width*9/10), 25)
 
         # Fixed options for autocomplete
         completer = QCompleter(self.defaults)  # Use custom completer

@@ -2,7 +2,7 @@ import json
 from shapely.geometry import LineString
 
 def extract_highway_ways():
-    with open("/Users/verwilst/PycharmProjects/mapQuiz/resources/export.json", 'r') as f:
+    with open("resources/export.json", 'r', encoding="utf-8") as f:
         data = json.load(f)
 
     highway_ways = []

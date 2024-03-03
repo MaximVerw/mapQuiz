@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 
 from PyQt5.QtWidgets import QApplication
@@ -21,9 +22,9 @@ if __name__ == '__main__':
     #  'unclassified', 'service', 'motorway', 'primary', 'primary_link', 'motorway_link'}
 
     # diff 1
-    # allowed_highway_types = set(["trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link", "secondary"])
+    allowed_highway_types = set(["trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link", "secondary"])
     # diff 2
-    allowed_highway_types = set(["trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link", "secondary", "tertiary_link", "residential", "tertiary"])
+    #allowed_highway_types = set(["trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link", "secondary", "tertiary_link", "residential", "tertiary"])
     waysByName = {}
     highwayTypes = set()
     waysUsed = set()

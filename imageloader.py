@@ -53,7 +53,7 @@ class ImageLoader(QThread):
             for x, y, zoom in self.quizmaster.relevant_tiles:
                 if zoom != zoom_level:
                     continue
-                tile_path = f"/Users/verwilst/PycharmProjects/mapQuiz/resources/images/{zoom}/{x}-{y}-blurred.jpg"
+                tile_path = f"resources/images/{zoom}/{x}-{y}-blurred.jpg"
                 tile_image = Image.open(tile_path)
                 image.paste(tile_image, ((x - start_x) * 256, (y - start_y) * 256))
                 processed_tiles += 1

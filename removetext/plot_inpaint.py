@@ -1,11 +1,10 @@
 import torch
-from diffusers import AutoPipelineForInpainting
+from diffusers import DiffusionPipeline
 from PIL import Image
-from diffusers.utils import make_image_grid
+
 class Inpainter:
     def __init__(self):
-        self.pipeline = AutoPipelineForInpainting.from_pretrained(
-        "runwayml/stable-diffusion-inpainting", torch_dtype=torch.float32, variant="fp16", low_cpu_mem_usage=False )
+        self.pipeline = DiffusionPipeline.from_pretrained( "runwayml/stable-diffusion-inpainting",  variant="fp16",  torch_dtype=torch.float32)
 
     def inPaintImage(self, image, mask):
         init_image = Image.fromarray(image.astype('uint8'))
