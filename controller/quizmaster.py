@@ -32,6 +32,7 @@ class QuizMaster:
         if unguessed_streets:
             random.shuffle(unguessed_streets)
             self.current_street = unguessed_streets[0]  # Set current street to the new street
+            print("New street: " + self.current_street)
             return self.current_street
         else:
             print("you won")
@@ -51,7 +52,6 @@ class QuizMaster:
 
         merged_geometry = GeometryCollection(all_geometries)
 
-        print(self.current_street)
         return merged_geometry
 
     def build_osm_image(self, x_tile, y_tile, zoom_level):

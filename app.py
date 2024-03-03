@@ -3,11 +3,82 @@ import sys
 from PIL import Image
 from PyQt5.QtWidgets import QMainWindow, QLabel, QLineEdit, QCompleter, QPushButton, QProgressBar, QApplication
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent
-from PyQt5.QtCore import Qt, QSize, QTimer
+from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
 
 from controller.quizmaster import QuizMaster
 from osm.slippyTileUtil import coordToPixel, tile_to_latlon, latlon_to_tile
 
+class ImageLoader(QThread):
+    progress_updated = pyqtSignal(int)
+    images_loaded = pyqtSignal(dict)
+    bottom_right_loaded = pyqtSignal(dict)
+    top_left_loaded = pyqtSignal(dict)
+
+    def __init__(self, quizmaster, zoom_levels):
+        super().__init__()
+        self.quizmaster = quizmaster
+        self.zoom_levels = zoom_levels
+        self.background_images = {}
+        self.backgroundTopLeft = {}
+        self.backgroundBottomRight = {}
+
+    def run(self):
+        # Create progress bar
+        processed_tiles = 0
+
+        for zoom_level in self.zoom_levels:
+            start_x = sys.maxsize
+            start_y = sys.maxsize
+            end_x = 0
+            end_y = 0
+
+            for x, y, zoom in self.quizmaster.relevant_tiles:
+                if zoom == zoom_level:
+                    if x < start_x:
+                        start_x = x
+                    if y < start_y:
+                        start_y = y
+                    if x > end_x:
+                        end_x = x
+                    if y > end_y:
+                        end_y = y
+
+            self.backgroundTopLeft[zoom_level] = self.getTopLeftCorner(start_x, start_y, zoom_level)
+            self.backgroundBottomRight[zoom_level] = self.getBottomRightCorner(end_x, end_y, zoom_level)
+
+            total_width = (end_x - start_x) * 256
+            total_height = (end_y - start_y) * 256
+
+            image = Image.new('RGB', (total_width, total_height))
+
+            for x, y, zoom in self.quizmaster.relevant_tiles:
+                if zoom != zoom_level:
+                    continue
+                tile_path = f"/Users/verwilst/PycharmProjects/mapQuiz/resources/images/{zoom}/{x}-{y}-blurred.jpg"
+                tile_image = Image.open(tile_path)
+                image.paste(tile_image, ((x - start_x) * 256, (y - start_y) * 256))
+                processed_tiles += 1
+
+                progress_percentage = int((processed_tiles / len(self.quizmaster.relevant_tiles)) * 100)
+                self.progress_updated.emit(progress_percentage)
+
+            # Convert the PIL image to a QImage
+            q_image = QImage(image.tobytes(), total_width, total_height, QImage.Format_RGB888)
+            self.background_images[zoom_level] = QPixmap.fromImage(q_image)
+
+        self.bottom_right_loaded.emit(self.backgroundBottomRight)
+        self.top_left_loaded.emit(self.backgroundTopLeft)
+        self.images_loaded.emit(self.background_images)
+
+    def getTopLeftCorner(self, x, y, zoom):
+        lat, lon = tile_to_latlon(x, y, zoom)
+        lat1, lon1 = tile_to_latlon(x, y, zoom)
+        return (lon1 + lon) / 2, (lat + lat1) / 2
+
+    def getBottomRightCorner(self, x, y, zoom):
+        lat, lon = tile_to_latlon(x, y, zoom)
+        lat1, lon1 = tile_to_latlon(x, y, zoom)
+        return (lon1 + lon) / 2, (lat + lat1) / 2
 
 class App(QMainWindow):
     def __init__(self, waysByName, defaults, area_in_scope):
@@ -18,21 +89,31 @@ class App(QMainWindow):
         self.scale = 2.
         self.setGeometry(100, 100, self.width, self.height+70)  # Set the window size to 512 by 512 pixels
         self.defaults = defaults
-        self.zoom_levels = [13,14,15, 16, 17, 18, 19]
+        self.zoom_levels = [13, 14, 15, 16, 17, 18, 19]
         self.zoom = 19
         self.offset_x = 0
         self.offset_y = 0
         self.dragging = False
         self.quizmaster = QuizMaster(waysByName, area_in_scope, self.zoom_levels)
+        self.background_images = {}
+        self.backgroundTopLeft = {}
+        self.backgroundBottomRight = {}
 
-        # Load the image from the local file system
-        self.loadBackgroundImages()
+        # Create progress bar
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setGeometry(self.width/2 - self.width*9/20, self.height/2, self.width*9/10, 100)  # Adjust position and size as needed
+
+        # Start image loading process in a separate thread
+        self.image_loader = ImageLoader(self.quizmaster, self.zoom_levels)
+        self.image_loader.progress_updated.connect(self.update_progress)
+        self.image_loader.images_loaded.connect(self.handle_images_loaded)
+        self.image_loader.bottom_right_loaded.connect(self.handle_bottom_right_loaded)
+        self.image_loader.top_left_loaded.connect(self.handle_top_left_loaded)
+        self.image_loader.start()
 
         self.background_label = QLabel(self)
         self.background_label.setGeometry(0, 0, self.width, self.height) # Set QLabel geometry
         self.background_label.setAlignment(Qt.AlignCenter)
-
-        self.getNewStreet()
 
         try:
             self.create_text_box()
@@ -172,67 +253,8 @@ class App(QMainWindow):
         # Update the bbox with the new coordinates
         return new_minx, new_miny, new_maxx, new_maxy
 
-    def loadBackgroundImages(self):
-        self.background_images = {}
-        self.backgroundTopLeft = {}
-        self.backgroundBottomRight = {}
 
-        # Create progress bar
-        progress_bar = QProgressBar(self)
-        progress_bar.setGeometry(self.width/2-100, self.height/2, 200, 25)  # Adjust position and size as needed
-        total_tiles = len(self.quizmaster.relevant_tiles)
-        processed_tiles = 0
 
-        for zoom_level in self.zoom_levels:
-            start_x = sys.maxsize
-            start_y = sys.maxsize
-            end_x = 0
-            end_y = 0
-
-            for x, y, zoom in self.quizmaster.relevant_tiles:
-                if zoom == zoom_level:
-                    if x < start_x:
-                        start_x = x
-                    if y < start_y:
-                        start_y = y
-                    if x > end_x:
-                        end_x = x
-                    if y > end_y:
-                        end_y = y
-
-            self.backgroundTopLeft[zoom_level] = self.getTopLeftCorner(start_x, start_y, zoom_level)
-            self.backgroundBottomRight[zoom_level] = self.getBottomRightCorner(end_x, end_y, zoom_level)
-
-            total_width = (end_x - start_x) * 256
-            total_height = (end_y - start_y) * 256
-
-            image = Image.new('RGB', (total_width, total_height))
-
-            for x, y, zoom in self.quizmaster.relevant_tiles:
-                tile_path = f"/Users/verwilst/PycharmProjects/mapQuiz/resources/images/{zoom}/{x}-{y}-blurred.jpg"
-                tile_image = Image.open(tile_path)
-                image.paste(tile_image, ((x - start_x) * 256, (y - start_y) * 256))
-                processed_tiles += 1
-                progress_bar.setValue((processed_tiles / total_tiles) * 100)  # Update progress bar value
-
-                print('trigger')
-                QApplication.processEvents()
-
-            # Convert the PIL image to a QImage
-            q_image = QImage(image.tobytes(), total_width, total_height, QImage.Format_RGB888)
-            self.background_images[zoom_level] = QPixmap.fromImage(q_image)
-
-        progress_bar.deleteLater()  # Remove progress bar after loading is complete
-        return self.background_images
-
-    def getTopLeftCorner(self, x, y, zoom):
-        lat, lon = tile_to_latlon(x, y, zoom)
-        lat1, lon1 = tile_to_latlon(x, y, zoom)
-        return (lon1+lon)/2,(lat+lat1)/2
-    def getBottomRightCorner(self, x, y, zoom):
-        lat, lon = tile_to_latlon(x, y, zoom)
-        lat1, lon1 = tile_to_latlon(x, y, zoom)
-        return (lon1+lon)/2,(lat+lat1)/2
 
     def determine_zoom(self, rescaled_bbox, centroid):
         lonPerPix = ((rescaled_bbox[2] - rescaled_bbox[0])/self.width)
@@ -246,11 +268,21 @@ class App(QMainWindow):
         return self.zoom
 
     def mousePressEvent(self, event: QMouseEvent):
+        try:
+            self.progress_bar.isHidden()
+            return
+        except:
+            pass
         if event.button() == Qt.LeftButton or  event.button() == Qt.RightButton:
             self.dragging = True
             self.start_pos = event.pos()
 
     def mouseMoveEvent(self, event: QMouseEvent):
+        try:
+            self.progress_bar.isHidden()
+            return
+        except:
+            pass
         if self.dragging:
             delta = event.pos() - self.start_pos
             self.offset_x += delta.x()
@@ -260,13 +292,42 @@ class App(QMainWindow):
             self.drawGeometry(streetGeometry)
 
     def mouseReleaseEvent(self, event: QMouseEvent):
+        try:
+            self.progress_bar.isHidden()
+            return
+        except:
+            pass
         if event.button() == Qt.LeftButton or  event.button() == Qt.RightButton:
             self.dragging = False
 
     def wheelEvent(self, event):
+        try:
+            self.progress_bar.isHidden()
+            return
+        except:
+            pass
+
         delta = event.angleDelta().y() / 120.  # Get the scroll value
         if(delta>0.):
             self.minus(1+delta)
         elif(delta<0.):
             self.plus(1-delta)
+
+    def update_progress(self, progress):
+        self.progress_bar.setValue(progress)
+
+    def handle_top_left_loaded(self, backgroundTopLeft):
+        self.backgroundTopLeft = backgroundTopLeft
+        # Handle the loaded images
+
+    def handle_bottom_right_loaded(self, backgroundBottomRight):
+        self.backgroundBottomRight = backgroundBottomRight
+        # Handle the loaded images
+
+    def handle_images_loaded(self, background_images):
+        self.background_images = background_images
+        # Handle the loaded images
+        self.progress_bar.deleteLater()   # Remove progress bar after loading is complete
+        self.getNewStreet()
+
 
