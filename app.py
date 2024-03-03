@@ -3,14 +3,34 @@ import sys
 from PIL import Image
 import platform
 
-from PyQt5.QtWidgets import QMainWindow, QLabel, QLineEdit, QCompleter, QProgressBar
-from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent, QIcon
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import QMainWindow, QLabel, QLineEdit, QCompleter, QProgressBar, QApplication
+from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent, QIcon, QKeyEvent
+from PyQt5.QtCore import Qt, QTimer, QEvent, pyqtSignal
 
 from controller.quizmaster import QuizMaster
 from imageloader import ImageLoader
 from osm.slippyTileUtil import coordToPixel, tile_to_latlon, latlon_to_tile
 
+class MyLineEdit(QLineEdit):
+    tabPressed = pyqtSignal()
+
+    def __init__(self, parent=None, completer=None):
+        super().__init__(parent)
+        self._compl = completer
+        self.tabPressed.connect(self.next_completion)
+
+    def next_completion(self):
+        index = self._compl.currentIndex()
+        self._compl.popup().setCurrentIndex(index)
+        start = self._compl.currentRow()
+        if not self._compl.setCurrentRow(start + 1):
+            self._compl.setCurrentRow(0)
+
+    def event(self, event):
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
+            self.tabPressed.emit()
+            return True
+        return super().event(event)
 class App(QMainWindow):
     def __init__(self, waysByName, defaults, area_in_scope):
         super().__init__()
@@ -114,16 +134,13 @@ class App(QMainWindow):
                 self.text_box.setText(self.hint)
 
     def create_text_box(self):
-        # Create a text box
-        self.text_box = QLineEdit(self)
-        self.text_box.setGeometry(int(self.width/20), self.height + 10, int(self.width*9/10), 25)
-
-        # Fixed options for autocomplete
-        completer = QCompleter(self.defaults)  # Use custom completer
-        self.text_box.setCompleter(completer)
-
-        # Connect activated signal to clear the text box
+        completer = QCompleter(self.defaults)
         completer.activated.connect(self.clear_text_box)
+
+        # Create a text box
+        self.text_box = MyLineEdit(self, completer)
+        self.text_box.setGeometry(int(self.width/20), self.height + 10, int(self.width*9/10), 25)
+        self.text_box.setCompleter(completer)
 
         # Connect returnPressed signal to print_text method
         self.text_box.returnPressed.connect(self.print_text)

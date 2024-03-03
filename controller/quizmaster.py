@@ -1,7 +1,5 @@
-import math
 import random
 import sys
-from math import ceil, floor
 
 from shapely import GeometryCollection
 

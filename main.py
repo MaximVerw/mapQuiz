@@ -2,11 +2,9 @@
 import sys
 
 from PyQt5.QtWidgets import QApplication
-from shapely import Point, LineString, Polygon, wkt
+from shapely import wkt
 
 from osm.read_osm_export import extract_highway_ways
-from removetext.remove_text import TextRemover
-from osm.read_osm import *
 from app import App
 
 

@@ -1,16 +1,8 @@
-import os
 import cv2
 import keras_ocr
-import matplotlib.pyplot as plt
 import numpy as np
 import math
 from PIL import Image
-from pyinpaint import Inpaint
-from skimage import data
-from skimage.morphology import disk, binary_dilation
-from skimage.restoration import inpaint
-
-from removetext.plot_inpaint import Inpainter
 
 
 class TextRemover:
