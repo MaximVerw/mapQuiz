@@ -1,5 +1,6 @@
 import math
 import random
+import sys
 from math import ceil, floor
 
 from shapely import GeometryCollection
@@ -18,34 +19,58 @@ class QuizMaster:
         self.current_street = None  # Initialize current street to None
         self.area_in_scope = area_in_scope
         self.relevant_tiles = self.init_images()
+        self.guessed_streets_list = []
 
 
     def guess(self, streetNameGuess):
         if streetNameGuess == self.current_street and streetNameGuess in self.waysByName and streetNameGuess not in self.guessed_streets:
             self.guessed_streets.add(streetNameGuess)
+            self.guessed_streets_list.append(self.waysByName[streetNameGuess])
             return True
         else:
             return False
 
     def pollNewStreet(self):
         unguessed_streets = [street for street in self.waysByName if street not in self.guessed_streets]
+        random.shuffle(unguessed_streets)
         if unguessed_streets:
-            random.shuffle(unguessed_streets)
-            self.current_street = unguessed_streets[0]  # Set current street to the new street
+            if self.current_street:
+                oldGeom = GeometryCollection([way['geometry'] for way in self.waysByName[self.current_street]])
+                mindist = float(sys.maxsize)
+                for unguessed in unguessed_streets:
+                    dis = oldGeom.distance(GeometryCollection([way['geometry'] for way in self.waysByName[unguessed]]))
+                    if dis < mindist:
+                        mindist = dis
+                        self.current_street = unguessed
+            else:
+                if "holstraat" in unguessed_streets:
+                    self.current_street = "holstraat"
+                else:
+                    self.current_street = unguessed_streets[0]  # Set current street to the new street
             print("New street: " + self.current_street)
             return self.current_street
         else:
-            print("you won")
-            self.current_street = None  # Reset current street when all streets are guessed
-            exit(0)
+            print("you won!")
+
+    def getGuessedGeometries(self):
+        # Create a list to store individual geometries
+        geometries = []
+        for streets in self.guessed_streets_list:
+            # Iterate through geometryCollections
+            for street in streets:
+                # Extend the list of geometries with the geometries in the geometryCollection
+                geometries.append(street['geometry'])
+
+        # Create a GeometryCollection from the geometries
+        return GeometryCollection(geometries)
 
     def getGeometry(self):
         if self.current_street is None:
-            raise ValueError
+            return None
 
         ways = self.waysByName[self.current_street]
         if not ways:
-            raise ValueError
+            return None
 
         # Merge all geometries into a single GeometryCollection
         all_geometries = [way['geometry'] for way in ways]
