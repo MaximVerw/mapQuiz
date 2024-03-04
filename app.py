@@ -159,8 +159,8 @@ class App(QMainWindow):
 
         self.drawGeometryCollection(painter, rescaled_bbox, streetGeometry,  QColor(255, 0, 0))
         self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometries, QColor(0, 150, 0))
-        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHint, QColor(245, 230, 66))
-        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHints, QColor(194, 245, 66))
+        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHint, QColor(194, 245, 66))
+        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHints, QColor(245, 230, 66))
         painter.end()
         self.background_label.setPixmap(pixmap)
 
