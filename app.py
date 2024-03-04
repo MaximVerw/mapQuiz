@@ -1,6 +1,6 @@
 import platform
 
-from PyQt5.QtWidgets import QMainWindow, QLabel, QCompleter, QProgressBar
+from PyQt5.QtWidgets import QMainWindow, QLabel, QCompleter, QProgressBar, QApplication
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent, QIcon, QCloseEvent
 from PyQt5.QtCore import Qt, QTimer
 
@@ -13,8 +13,10 @@ class App(QMainWindow):
     def __init__(self, waysByName, area_in_scope):
         super().__init__()
         self.setWindowTitle("MapQuiz")
-        self.width = 2560
-        self.height = 1440 - 55
+        desktop = QApplication.desktop()
+        screen_rect = desktop.screenGeometry(desktop.screenNumber(self))
+        self.width = screen_rect.width()
+        self.height = screen_rect.height()
         self.setWindowFlags(Qt.CustomizeWindowHint | Qt.FramelessWindowHint)
         self.scale = 4.
         self.setGeometry(0, 0, self.width, self.height+55)
@@ -135,7 +137,7 @@ class App(QMainWindow):
             streetGeometry = self.oldGeometry
         else:
             self.oldGeometry = streetGeometry
-        guessedGeometriesWithHint, guessedGeometries = self.quizmaster.getGuessedGeometries()
+        guessedGeometriesWithHints, guessedGeometriesWithHint, guessedGeometries = self.quizmaster.getGuessedGeometries()
         rescaled_bbox = self.getRescaledBbox(streetGeometry)
 
         # Create a white QImage
@@ -157,7 +159,8 @@ class App(QMainWindow):
 
         self.drawGeometryCollection(painter, rescaled_bbox, streetGeometry,  QColor(255, 0, 0))
         self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometries, QColor(0, 150, 0))
-        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHint, QColor(245, 240, 66))
+        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHint, QColor(245, 230, 66))
+        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHints, QColor(194, 245, 66))
         painter.end()
         self.background_label.setPixmap(pixmap)
 

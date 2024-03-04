@@ -12,17 +12,15 @@ from app import App
 class SelectionDialog(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Select Highway Types")
+        self.setWindowTitle("MapQuiz")
         self.layout = QVBoxLayout()
 
-        self.label = QLabel("Select the desired set of highway types:")
-        self.layout.addWidget(self.label)
-
-        self.diff1_button = QPushButton("De Ring")
+        self.diff1_button = QPushButton("Gent")
+        self.diff1_button.setMinimumWidth(200)
         self.diff1_button.clicked.connect(self.diff1_selected)
         self.layout.addWidget(self.diff1_button)
 
-        self.diff2_button = QPushButton("Full Quiz")
+        self.diff2_button = QPushButton("De Ring")
         self.diff2_button.clicked.connect(self.diff2_selected)
         self.layout.addWidget(self.diff2_button)
 
@@ -63,10 +61,10 @@ class SelectionDialog(QWidget):
         #  'tertiary_link', 'cycleway', 'secondary', 'residential', 'trunk_link', 'proposed', 'construction', 'track',
         #  'unclassified', 'service', 'motorway', 'primary', 'primary_link', 'motorway_link'}
         if option == 1:
+            pass
+        elif option == 2:
             allowed_highway_types = {"trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link",
                                      "secondary"}
-        elif option == 2:
-            pass
         elif option == 3:
             area_of_interest_wkt = 'POLYGON((3.719966411590576 51.049137486412775,3.7200307846069336 51.05044594403137,3.720717430114746 51.05194320584977,3.720438480377197 51.0547352675035,3.720910549163818 51.05585474252803,3.7226915359497066 51.05678536983842,3.724150657653809 51.057473212785624,3.7248587608337402 51.05820150594522,3.7254810333251958 51.058929787649305,3.725674152374268 51.05976594881227,3.726575374603272 51.06068301143367,3.727219104766846 51.060858330160585,3.727471232414246 51.06077741390757,3.727755546569825 51.060689754473884,3.72813642024994 51.060416660558786,3.7300837039947514 51.05976594881227,3.730952739715576 51.059310782310035,3.7317252159118652 51.058137443580534,3.7323796749114995 51.057156266814644,3.7333506345748906 51.05623913433655,3.73434841632843 51.05488026127631,3.732857108116149 51.05454980969054,3.7317413091659537 51.0541417998875,3.730759620666503 51.05369669418414,3.73010516166687 51.053288676864355,3.729214668273926 51.05239844477916,3.7284690141677856 51.05172738731224,3.7282222509384155 51.05142051859747,3.7280720472335815 51.050324542302974,3.7286889553070073 51.049899633747486,3.7278628349304204 51.049545540306696,3.725818991661072 51.049491582973246,3.7216293811798082 51.04916109293438,3.719966411590576 51.049137486412775))'
         elif option == 4:

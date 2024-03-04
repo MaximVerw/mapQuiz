@@ -19,6 +19,7 @@ class QuizMaster:
         self.relevant_tiles = self.init_images()
         self.guessed_streets_list = []
         self.guessed_streets_with_hint = set()
+        self.guessed_streets_with_hints_2 = set()
 
 
     def guess(self, streetNameGuess, hint):
@@ -26,7 +27,10 @@ class QuizMaster:
             self.guessed_streets.add(streetNameGuess)
             self.guessed_streets_list.append(self.waysByName[streetNameGuess])
             if hint != '':
-                self.guessed_streets_with_hint.add(streetNameGuess)
+                if len(hint) == 1:
+                    self.guessed_streets_with_hints_2
+                else:
+                    self.guessed_streets_with_hints_2.add(streetNameGuess)
             return True
         else:
             return False
@@ -56,17 +60,20 @@ class QuizMaster:
     def getGuessedGeometries(self):
         # Create a list to store individual geometries
         geometries_with_hint = []
+        geometries_with_hints = []
         geometries_without_hint = []
         for streets in self.guessed_streets_list:
             # Iterate through geometryCollections
             for street in streets:
                 if street['name'] in self.guessed_streets_with_hint:
                     geometries_with_hint.append(street['geometry'])
+                elif street['name'] in self.guessed_streets_with_hints_2:
+                    geometries_with_hints.append(street['geometry'])
                 else:
                     geometries_without_hint.append(street['geometry'])
 
         # Create a GeometryCollection from the geometries
-        return GeometryCollection(geometries_with_hint), GeometryCollection(geometries_without_hint)
+        return GeometryCollection(geometries_with_hints), GeometryCollection(geometries_with_hint), GeometryCollection(geometries_without_hint)
 
     def getGeometry(self):
         if self.current_street is None:
@@ -89,6 +96,7 @@ class QuizMaster:
             self.tr.process_image(path)
 
     def init_images(self):
+        margin = 4
         relevant_tiles = []
         for zoom_level in self.zoom_levels:
             min_lon, min_lat, max_lon, max_lat = self.area_in_scope.bounds
@@ -96,12 +104,12 @@ class QuizMaster:
             max_x_tile, min_y_tile = latlon_to_tile(max_lat, max_lon, zoom_level)
 
             counter = 0
-            for x_tile in range(min_x_tile, max_x_tile+2):
-                for y_tile in range(min_y_tile, max_y_tile+2):
+            for x_tile in range(min_x_tile-margin, max_x_tile+margin):
+                for y_tile in range(min_y_tile-margin, max_y_tile+margin):
                     counter += 1
 
-            for x_tile in range(min_x_tile, max_x_tile+2):
-                for y_tile in range(min_y_tile, max_y_tile+2):
+            for x_tile in range(min_x_tile-margin, max_x_tile+margin):
+                for y_tile in range(min_y_tile-margin, max_y_tile+margin):
                     relevant_tiles.append((x_tile, y_tile, zoom_level))
                     self.build_osm_image(x_tile, y_tile, zoom_level)
         return relevant_tiles
