@@ -28,7 +28,7 @@ class QuizMaster:
             self.guessed_streets_list.append(self.waysByName[streetNameGuess])
             if hint != '':
                 if len(hint) == 1:
-                    self.guessed_streets_with_hints_2
+                    self.guessed_streets_with_hint.add(streetNameGuess)
                 else:
                     self.guessed_streets_with_hints_2.add(streetNameGuess)
             return True
@@ -52,7 +52,6 @@ class QuizMaster:
                     self.current_street = "holstraat"
                 else:
                     self.current_street = unguessed_streets[0]  # Set current street to the new street
-            print("New street: " + self.current_street)
             return self.current_street
         else:
             print("you won!")
