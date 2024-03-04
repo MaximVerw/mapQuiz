@@ -16,7 +16,7 @@ class App(QMainWindow):
         desktop = QApplication.desktop()
         screen_rect = desktop.screenGeometry(desktop.screenNumber(self))
         self.width = screen_rect.width()
-        self.height = screen_rect.height()
+        self.height = screen_rect.height()-55
         self.setWindowFlags(Qt.CustomizeWindowHint | Qt.FramelessWindowHint)
         self.scale = 4.
         self.setGeometry(0, 0, self.width, self.height+55)

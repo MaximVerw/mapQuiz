@@ -104,12 +104,12 @@ class QuizMaster:
             max_x_tile, min_y_tile = latlon_to_tile(max_lat, max_lon, zoom_level)
 
             counter = 0
-            for x_tile in range(min_x_tile-margin, max_x_tile+margin):
-                for y_tile in range(min_y_tile-margin, max_y_tile+margin):
+            for x_tile in range(min_x_tile-margin, max_x_tile+2*margin):
+                for y_tile in range(min_y_tile-margin, max_y_tile+2*margin):
                     counter += 1
 
-            for x_tile in range(min_x_tile-margin, max_x_tile+margin):
-                for y_tile in range(min_y_tile-margin, max_y_tile+margin):
+            for x_tile in range(min_x_tile-margin, max_x_tile+2*margin):
+                for y_tile in range(min_y_tile-margin, max_y_tile+2*margin):
                     relevant_tiles.append((x_tile, y_tile, zoom_level))
                     self.build_osm_image(x_tile, y_tile, zoom_level)
         return relevant_tiles
