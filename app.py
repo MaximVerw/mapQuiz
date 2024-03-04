@@ -1,45 +1,24 @@
-import sys
-
-from PIL import Image
 import platform
 
-from PyQt5.QtWidgets import QMainWindow, QLabel, QLineEdit, QCompleter, QProgressBar, QApplication
-from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent, QIcon, QKeyEvent
-from PyQt5.QtCore import Qt, QTimer, QEvent, pyqtSignal
+from PyQt5.QtWidgets import QMainWindow, QLabel, QCompleter, QProgressBar
+from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent, QIcon, QCloseEvent
+from PyQt5.QtCore import Qt, QTimer
 
-from controller.quizmaster import QuizMaster
-from imageloader import ImageLoader
+from quizmaster.quizmaster import QuizMaster
+from widgets.MyLineEdit import MyLineEdit
+from widgets.imageloader import ImageLoader
 from osm.slippyTileUtil import coordToPixel, tile_to_latlon, latlon_to_tile
 
-class MyLineEdit(QLineEdit):
-    tabPressed = pyqtSignal()
-
-    def __init__(self, parent=None, completer=None):
-        super().__init__(parent)
-        self._compl = completer
-        self.tabPressed.connect(self.next_completion)
-
-    def next_completion(self):
-        index = self._compl.currentIndex()
-        self._compl.popup().setCurrentIndex(index)
-        start = self._compl.currentRow()
-        if not self._compl.setCurrentRow(start + 1):
-            self._compl.setCurrentRow(0)
-
-    def event(self, event):
-        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
-            self.tabPressed.emit()
-            return True
-        return super().event(event)
 class App(QMainWindow):
-    def __init__(self, waysByName, defaults, area_in_scope):
+    def __init__(self, waysByName, area_in_scope):
         super().__init__()
         self.setWindowTitle("MapQuiz")
-        self.width = 1920
-        self.height = 1080
+        self.width = 2560
+        self.height = 1440 - 55
+        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.FramelessWindowHint)
         self.scale = 4.
-        self.setGeometry(100, 100, self.width, self.height+55)  # Set the window size to 512 by 512 pixels
-        self.defaults = defaults
+        self.setGeometry(0, 0, self.width, self.height+55)
+        self.defaults = list(waysByName.keys())
         self.zoom_levels = [13, 14, 15, 16, 17, 18, 19]
         self.zoom = 19
         self.offset_x = 0
@@ -62,10 +41,10 @@ class App(QMainWindow):
 
         # Create progress bars
         self.progress_bar = QProgressBar(self)
-        self.progress_bar.setGeometry(int(self.width/2 - self.width*9/20), self.height - 50, int(self.width*9/10), 20)  # Adjust position and size as needed
+        self.progress_bar.setGeometry(int(self.width/2 - self.width*9/20), self.height - 50, int(self.width*9/10), 20)
 
         self.progress_bar_quiz = QProgressBar(self)
-        self.progress_bar_quiz.setGeometry(int(self.width/2 - self.width*9/20), self.height+40, int(self.width*9/10), 10)  # Adjust position and size as needed
+        self.progress_bar_quiz.setGeometry(int(self.width/2 - self.width*9/20), self.height+40, int(self.width*9/10), 10)
         self.progress_bar_quiz.hide()
 
         # Start image loading process in a separate thread
@@ -123,7 +102,7 @@ class App(QMainWindow):
 
     def print_text(self):
         text = self.text_box.text()
-        if (self.quizmaster.guess(text)):
+        if (self.quizmaster.guess(text, self.hint)):
             self.clear_text_box() # Clear the text box after printing the text
             self.getNewStreet()
         else:
@@ -156,7 +135,7 @@ class App(QMainWindow):
             streetGeometry = self.oldGeometry
         else:
             self.oldGeometry = streetGeometry
-        guessedGeometries = self.quizmaster.getGuessedGeometries()
+        guessedGeometriesWithHint, guessedGeometries = self.quizmaster.getGuessedGeometries()
         rescaled_bbox = self.getRescaledBbox(streetGeometry)
 
         # Create a white QImage
@@ -178,6 +157,7 @@ class App(QMainWindow):
 
         self.drawGeometryCollection(painter, rescaled_bbox, streetGeometry,  QColor(255, 0, 0))
         self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometries, QColor(0, 150, 0))
+        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHint, QColor(245, 240, 66))
         painter.end()
         self.background_label.setPixmap(pixmap)
 
@@ -308,5 +288,9 @@ class App(QMainWindow):
         self.getNewStreet()
         self.text_box.show()
         self.progress_bar_quiz.show()
+
+    def keyPressEvent(self, event, **kwargs):
+        if event.key() == Qt.Key_Escape:
+            exit(0)
 
 

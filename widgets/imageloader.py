@@ -1,7 +1,7 @@
 import sys
 
 from PIL import Image
-from PyQt5.QtCore import pyqtSignal, QThread
+from PyQt5.QtCore import pyqtSignal, QThread, Qt
 from PyQt5.QtGui import QImage, QPixmap
 
 from osm.slippyTileUtil import tile_to_latlon

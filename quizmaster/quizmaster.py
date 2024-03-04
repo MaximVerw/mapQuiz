@@ -18,12 +18,15 @@ class QuizMaster:
         self.area_in_scope = area_in_scope
         self.relevant_tiles = self.init_images()
         self.guessed_streets_list = []
+        self.guessed_streets_with_hint = set()
 
 
-    def guess(self, streetNameGuess):
+    def guess(self, streetNameGuess, hint):
         if streetNameGuess == self.current_street and streetNameGuess in self.waysByName and streetNameGuess not in self.guessed_streets:
             self.guessed_streets.add(streetNameGuess)
             self.guessed_streets_list.append(self.waysByName[streetNameGuess])
+            if hint != '':
+                self.guessed_streets_with_hint.add(streetNameGuess)
             return True
         else:
             return False
@@ -52,15 +55,18 @@ class QuizMaster:
 
     def getGuessedGeometries(self):
         # Create a list to store individual geometries
-        geometries = []
+        geometries_with_hint = []
+        geometries_without_hint = []
         for streets in self.guessed_streets_list:
             # Iterate through geometryCollections
             for street in streets:
-                # Extend the list of geometries with the geometries in the geometryCollection
-                geometries.append(street['geometry'])
+                if street['name'] in self.guessed_streets_with_hint:
+                    geometries_with_hint.append(street['geometry'])
+                else:
+                    geometries_without_hint.append(street['geometry'])
 
         # Create a GeometryCollection from the geometries
-        return GeometryCollection(geometries)
+        return GeometryCollection(geometries_with_hint), GeometryCollection(geometries_without_hint)
 
     def getGeometry(self):
         if self.current_street is None:
