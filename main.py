@@ -79,8 +79,7 @@ class SelectionDialog(QWidget):
         for way in ways:
             highwayTypes.add(way.get("highway_type"))
             if way.get("highway_type") in allowed_highway_types:
-                way_centroid = way['geometry'].centroid
-                if area_of_interest.contains(way_centroid):
+                if area_of_interest.intersects(way['geometry']):
                     waysUsed.add(way["name"])
 
         for way in ways:
