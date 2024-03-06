@@ -54,7 +54,7 @@ class SelectionDialog(QWidget):
     def launch_app(self, option):
         area_of_interest_wkt = "POLYGON((3.7222950801877976 51.03880203056653,3.7269208910099856 51.03753412626381,3.7384261127985057 51.038056208707985,3.7474405133750768 51.0473781190764,3.7396122181375278 51.05871103490438,3.7334444703746104 51.06929585854803,3.697149647000517 51.066761684528586,3.6905074571019907 51.05990381208136,3.698098531271736 51.051628287521766,3.7139923428146386 51.04379872734566,3.7222950801877976 51.03880203056653))"
 
-        allowed_highway_types = {"trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link",
+        allowed_highway_types = {'bridge',"trunk", "trunk_link", "motorway", "motorway_link", "primary", "primary_link",
                                  "secondary", "tertiary_link", "residential", "tertiary",'tertiary_link', "unclassified", 'living_street', 'pedestrian','service', 'construction'}
         ways = extract_highway_ways()
         # {'rest_area', 'steps', 'pedestrian', 'living_street', 'path', 'tertiary', 'platform', 'trunk', 'footway',

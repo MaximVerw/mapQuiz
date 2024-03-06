@@ -1,6 +1,8 @@
 import random
 import sys
 
+import time
+
 from shapely import GeometryCollection
 
 from osm.read_osm import *
@@ -20,6 +22,8 @@ class QuizMaster:
         self.guessed_streets_list = []
         self.guessed_streets_with_hint = set()
         self.guessed_streets_with_hints_2 = set()
+        self.start_time = time.time()
+        self.end_time = self.start_time
 
 
     def guess(self, streetNameGuess, hint):
@@ -54,7 +58,33 @@ class QuizMaster:
                     self.current_street = unguessed_streets[0]  # Set current street to the new street
             return self.current_street
         else:
-            print("you won!")
+            self.finish_quiz()
+
+    def finish_quiz(self):
+        # Record the ending time
+        self.end_time = time.time()
+        message = self.getEndMessage()
+        print(message)
+
+    def getEndMessage(self):
+        # Calculate the time difference
+        time_spent_seconds = self.end_time - self.start_time
+        # Convert time spent to hours, minutes, and seconds
+        hours = int(time_spent_seconds // 3600)
+        minutes = int((time_spent_seconds % 3600) // 60)
+        seconds = int(time_spent_seconds % 60)
+        # Format the time spent
+        formatted_time = ""
+        if hours > 0:
+            formatted_time += f"{hours} hours, "
+        if minutes > 0:
+            formatted_time += f"{minutes} minutes, "
+        formatted_time += f"{seconds} seconds"
+        g = len(self.guessed_streets)
+        h = len(self.guessed_streets_with_hint)
+        h2 = len(self.guessed_streets_with_hints_2)
+        message = f"You won! {int(100. * float(g - h - h2) / g)}% correct, time spent: {formatted_time}"
+        return message
 
     def getGuessedGeometries(self):
         # Create a list to store individual geometries
