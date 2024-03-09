@@ -52,10 +52,10 @@ class QuizMaster:
                         mindist = dis
                         self.current_street = unguessed
             else:
-                if "holstraat" in unguessed_streets:
-                    self.current_street = "holstraat"
-                else:
-                    self.current_street = unguessed_streets[0]  # Set current street to the new street
+                #if "holstraat" in unguessed_streets:
+                #    self.current_street = "holstraat"
+                #else:
+                self.current_street = unguessed_streets[0]  # Set current street to the new street
             return self.current_street
         else:
             self.finish_quiz()

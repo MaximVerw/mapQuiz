@@ -1,6 +1,7 @@
 import platform
+import random
 
-from PyQt5.QtWidgets import QMainWindow, QLabel, QCompleter, QProgressBar, QApplication
+from PyQt5.QtWidgets import QMainWindow, QLabel, QCompleter, QProgressBar, QApplication, QPushButton
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent, QIcon, QCloseEvent
 from PyQt5.QtCore import Qt, QTimer
 
@@ -10,8 +11,9 @@ from widgets.imageloader import ImageLoader
 from osm.slippyTileUtil import coordToPixel, tile_to_latlon, latlon_to_tile
 
 class App(QMainWindow):
-    def __init__(self, waysByName, area_in_scope):
+    def __init__(self, waysByName, area_in_scope, easy_mode=False):
         super().__init__()
+        self.easy_mode = easy_mode
         self.setWindowTitle("MapQuiz")
         desktop = QApplication.desktop()
         screen_rect = desktop.screenGeometry(desktop.screenNumber(self))
@@ -71,19 +73,27 @@ class App(QMainWindow):
         pixmap = QPixmap(image_path)
         self.logo.setPixmap(pixmap.scaledToWidth(self.width//2))
 
-        try:
-            self.create_text_box()
-
-        except FileNotFoundError:
-            print("Error: File not found.")
-        except Exception as e:
-            print("Error loading image:", e)
 
     def getNewStreet(self):
         self.hint = ""
         self.progress_bar_quiz.setValue(int(len(self.quizmaster.guessed_streets)/len(self.quizmaster.waysByName)*100.))
         self.quizmaster.pollNewStreet()
         self.drawGeometry()
+        if self.easy_mode:
+            current_street = self.quizmaster.current_street
+            used = set()
+            used.add(current_street)
+            def_len = len(self.defaults)
+            random_street = current_street
+            for i in range(4):
+                while random_street in used:
+                    random_street = self.defaults[random.randint(0, def_len-1)]
+                used.add(random_street)
+                self.mcButtons[i].setText(random_street)
+            j = random.randint(0, 3)
+            self.mcButtons[j].setText(current_street)
+            for button in self.mcButtons:
+                button.setFocusPolicy(Qt.TabFocus)
 
     def plus_one(self):
         self.plus(2.)
@@ -117,16 +127,64 @@ class App(QMainWindow):
     def create_text_box(self):
         completer = QCompleter(self.defaults)
         completer.activated.connect(self.clear_text_box)
+        completer.setCompletionMode(QCompleter.PopupCompletion)
 
         # Create a text box
         self.text_box = MyLineEdit(self, completer)
-        self.text_box.setGeometry(int(self.width/20), self.height + 10, int(self.width*9/10), 25)
+        self.text_box.setGeometry(int(self.width / 20), self.height + 10, int(self.width * 9 / 10), 25)
         self.text_box.setCompleter(completer)
 
         # Connect returnPressed signal to print_text method
         self.text_box.returnPressed.connect(self.print_text)
+        self.text_box.show()
 
-        self.text_box.hide()
+    def create_multiple_choice(self):
+
+        mcButton1 = QPushButton(self)
+        mcButton1.setGeometry(int(self.width * 1/16), self.height + 5, int(self.width * 1 / 8), 35)
+        mcButton1.clicked.connect(self.click_1)
+
+        mcButton2 = QPushButton(self)
+        mcButton2.setGeometry(int(self.width * 5/16), self.height + 5, int(self.width * 1 / 8), 35)
+        mcButton2.clicked.connect(self.click_2)
+
+        mcButton3 = QPushButton(self)
+        mcButton3.setGeometry(int(self.width * 9/16), self.height + 5, int(self.width * 1 / 8), 35)
+        mcButton3.clicked.connect(self.click_3)
+
+        mcButton4 = QPushButton(self)
+        mcButton4.setGeometry(int(self.width * 13/16), self.height + 5, int(self.width * 1 / 8), 35)
+        mcButton4.clicked.connect(self.click_4)
+        self.mcButtons = [mcButton1, mcButton2, mcButton3, mcButton4]
+        for button in self.mcButtons:
+            button.show()
+
+        #self.mc_layout.setGeometry(int(self.width / 20), self.height - 65, int(self.width * 9 / 10), 100)
+        #self.mc_layout.show()
+
+    def click_1(self):
+        self.handle_mc_click(0)
+    def click_2(self):
+        self.handle_mc_click(1)
+    def click_3(self):
+        self.handle_mc_click(2)
+    def click_4(self):
+        self.handle_mc_click(3)
+
+    def handle_mc_click(self, index):
+        text = self.mcButtons[index].text()
+        if (self.quizmaster.guess(text, self.hint)):
+            self.getNewStreet()
+            for button in self.mcButtons:
+                print(button.styleSheet())
+                button.setEnabled(True)
+        else:
+            self.mcButtons[index].setEnabled(False)
+            length = len(self.hint)
+            currentStreet = self.quizmaster.current_street
+            if (length<len(currentStreet)):
+                self.hint += currentStreet[length]
+
 
     def clear_text_box(self):
         QTimer.singleShot(0, self.text_box.clear)
@@ -288,8 +346,11 @@ class App(QMainWindow):
         # Handle the loaded images
         self.progress_bar.deleteLater()   # Remove progress bar after loading is complete
         self.logo.deleteLater()
+        if self.easy_mode:
+            self.create_multiple_choice()
+        else:
+            self.create_text_box()
         self.getNewStreet()
-        self.text_box.show()
         self.progress_bar_quiz.show()
 
     def keyPressEvent(self, event, **kwargs):

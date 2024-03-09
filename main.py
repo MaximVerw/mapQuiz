@@ -2,7 +2,7 @@
 import sys
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QDialog, QMainWindow
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QDialog, QMainWindow, QCheckBox
 from shapely import wkt
 
 from osm.read_osm_export import extract_highway_ways
@@ -32,6 +32,9 @@ class SelectionDialog(QWidget):
         self.diff4_button.clicked.connect(self.diff4_selected)
         self.layout.addWidget(self.diff4_button)
 
+        self.checkbox = QCheckBox("Easy mode")
+        self.layout.addWidget(self.checkbox)
+
         self.setLayout(self.layout)
 
     def diff1_selected(self):
@@ -39,7 +42,6 @@ class SelectionDialog(QWidget):
         self.launch_app(1)
 
     def diff2_selected(self):
-        self.hide()
         self.launch_app(2)
 
     def diff3_selected(self):
@@ -91,7 +93,7 @@ class SelectionDialog(QWidget):
 
         print(f'Roads in scope: {len(waysByName.keys())}')
         self.main_app = QMainWindow()
-        self.app_window = App(waysByName, area_of_interest)
+        self.app_window = App(waysByName, area_of_interest, self.checkbox.isChecked())
         self.main_app.setGeometry(self.app_window.geometry())
         self.main_app.setWindowFlags(Qt.CustomizeWindowHint | Qt.FramelessWindowHint)
         self.main_app.setCentralWidget(self.app_window)
