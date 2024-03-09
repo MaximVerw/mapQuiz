@@ -60,7 +60,7 @@ class App(QMainWindow):
         self.image_loader.start()
 
         self.background_label = QLabel(self)
-        self.background_label.setGeometry(0, 0, self.width, self.height) # Set QLabel geometry
+        self.background_label.setGeometry(0, 0, self.width, self.height - (50 if self.easy_mode else 0))
         self.background_label.setAlignment(Qt.AlignCenter)
 
         # Create QLabel for displaying the image
@@ -141,19 +141,25 @@ class App(QMainWindow):
     def create_multiple_choice(self):
 
         mcButton1 = QPushButton(self)
-        mcButton1.setGeometry(int(self.width * 1/16), self.height + 5, int(self.width * 1 / 8), 35)
+        font = mcButton1.font()
+        font.setPixelSize(self.width / 80 )
+        mcButton1.setFont(font)
+        mcButton1.setGeometry(int(self.width * 1/32), self.height - 50, int(self.width * 3 / 16), 90)
         mcButton1.clicked.connect(self.click_1)
 
         mcButton2 = QPushButton(self)
-        mcButton2.setGeometry(int(self.width * 5/16), self.height + 5, int(self.width * 1 / 8), 35)
+        mcButton2.setFont(font)
+        mcButton2.setGeometry(int(self.width * 9/32), self.height  - 50, int(self.width * 3 / 16), 90)
         mcButton2.clicked.connect(self.click_2)
 
         mcButton3 = QPushButton(self)
-        mcButton3.setGeometry(int(self.width * 9/16), self.height + 5, int(self.width * 1 / 8), 35)
+        mcButton3.setFont(font)
+        mcButton3.setGeometry(int(self.width * 17/32), self.height  - 50 , int(self.width * 3 / 16), 90)
         mcButton3.clicked.connect(self.click_3)
 
         mcButton4 = QPushButton(self)
-        mcButton4.setGeometry(int(self.width * 13/16), self.height + 5, int(self.width * 1 / 8), 35)
+        mcButton4.setFont(font)
+        mcButton4.setGeometry(int(self.width * 25/32), self.height  - 50 , int(self.width * 3 / 16), 90)
         mcButton4.clicked.connect(self.click_4)
         self.mcButtons = [mcButton1, mcButton2, mcButton3, mcButton4]
         for button in self.mcButtons:
