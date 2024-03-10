@@ -142,7 +142,7 @@ class App(QMainWindow):
 
         mcButton1 = QPushButton(self)
         font = mcButton1.font()
-        font.setPixelSize(self.width / 80 )
+        font.setPixelSize(int(self.width / 80) )
         mcButton1.setFont(font)
         mcButton1.setGeometry(int(self.width * 1/32), self.height - 50, int(self.width * 3 / 16), 90)
         mcButton1.clicked.connect(self.click_1)
