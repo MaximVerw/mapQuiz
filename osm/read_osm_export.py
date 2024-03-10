@@ -10,12 +10,12 @@ def extract_highway_ways():
     for element in data['elements']:
         if element['type'] == 'way' and 'tags' in element:
             tags = element['tags']
-            if 'bridge:name' in tags:
+            if 'man_made' in tags and tags['man_made']=='bridge' and  'name' in tags :
                     coords = [(node['lon'], node['lat']) for node in element['geometry']]
                     poly = LineString(coords).buffer(0.0001)
                     exterior_coords = list(poly.exterior.coords)
                     exterior_coords.append(exterior_coords[0])
-                    name = element["tags"]["bridge:name"].lower()
+                    name = element["tags"]["name"].lower()
                     geometry = LineString(exterior_coords)
                     highway_ways.append({'name':name, 'highway_type': 'bridge', 'geometry': geometry})
             if 'highway' in tags:
