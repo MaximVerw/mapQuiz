@@ -1,10 +1,12 @@
 import platform
 import random
+import sys
 from itertools import chain
 
 from PyQt5.QtWidgets import QMainWindow, QLabel, QCompleter, QProgressBar, QApplication, QPushButton, QToolTip
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent, QIcon, QCloseEvent
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QPoint
+from numpy import mean
 from shapely import Point, GeometryCollection
 
 from quizmaster.quizmaster import QuizMaster
@@ -240,7 +242,9 @@ class App(QMainWindow):
         painter.end()
         self.background_label.setPixmap(pixmap)
 
-    def drawGeometryCollection(self, painter, rescaled_bbox, geometry, qColor):
+    def drawGeometryCollection(self, painter, rescaled_bbox, inputGeometry, qColor):
+        geometry = GeometryCollection(inputGeometry)
+
         # Convert coordinates to pixel coordinates
         pixels = []
         for geom in geometry.geoms:
@@ -312,11 +316,21 @@ class App(QMainWindow):
             self.dragging = True
             self.start_pos = event.pos()
         if event.button() == Qt.RightButton:
-            # Example: show a tooltip when hovering over the logo
-            streetGeometry = self.quizmaster.getGeometry()
-            rescaled_bbox = self.getRescaledBbox(streetGeometry)
-            # TODO: store pixelcoords of streets and fetch them hereif streetGeometry.distance(pixelToCoord(event.globalPos().x(), event.globalPos().y(), rescaled_bbox, self.width, self.height))<1e-4:
-            QToolTip.showText(event.globalPos(), "This is the logo.")
+            minDist = sys.maxsize
+            minCoord = None
+            minName = ''
+            for name, geometry in self.streetsWithGeometry.items():
+                coordCandidates = geometry.copy()
+                coordCandidates.append([int(mean([coord[0] for coord in geometry])), int(mean([coord[1] for coord in geometry]))])
+
+                distances = [abs(coord[0] - event.globalPos().x()) + abs(coord[1] - event.globalPos().y()) for coord in coordCandidates]
+                newDist = min(distances)
+                if newDist < minDist:
+                    minDist = newDist
+                    minName = name
+                    minCoord = coordCandidates[distances.index(minDist)]
+            if minCoord:
+                QToolTip.showText(event.pos(), minName)
 
     def mouseMoveEvent(self, event: QMouseEvent):
         try:

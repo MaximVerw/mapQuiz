@@ -95,11 +95,20 @@ class QuizMaster:
             # Iterate through geometryCollections
             for street in streets:
                 if street['name'] in self.guessed_streets_with_hint:
-                    geometries_with_hint[street['name']] = (street['geometry'])
+                    if street['name'] in geometries_with_hint.keys():
+                        geometries_with_hint[street['name']].append(street['geometry'])
+                    else:
+                        geometries_with_hint[street['name']] = [street['geometry']]
                 elif street['name'] in self.guessed_streets_with_hints_2:
-                    geometries_with_hints[street['name']] = (street['geometry'])
+                    if street['name'] in geometries_with_hints.keys():
+                        geometries_with_hints[street['name']].append(street['geometry'])
+                    else:
+                        geometries_with_hints[street['name']] = [street['geometry']]
                 else:
-                    geometries_without_hint[street['name']] = (street['geometry'])
+                    if street['name'] in geometries_without_hint.keys():
+                        geometries_without_hint[street['name']].append(street['geometry'])
+                    else:
+                        geometries_without_hint[street['name']] = [street['geometry']]
 
         # Create a GeometryCollection from the geometries
         return geometries_with_hints, geometries_with_hint, geometries_without_hint
