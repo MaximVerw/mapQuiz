@@ -1,15 +1,16 @@
 import platform
 import random
+from itertools import chain
 
 from PyQt5.QtWidgets import QMainWindow, QLabel, QCompleter, QProgressBar, QApplication, QPushButton, QToolTip
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent, QIcon, QCloseEvent
 from PyQt5.QtCore import Qt, QTimer
-from shapely import Point
+from shapely import Point, GeometryCollection
 
 from quizmaster.quizmaster import QuizMaster
 from widgets.MyLineEdit import MyLineEdit
 from widgets.imageloader import ImageLoader
-from osm.slippyTileUtil import coordToPixel, tile_to_latlon, latlon_to_tile, pixelToCoord
+from osm.slippyTileUtil import coordToPixel, tile_to_latlon, latlon_to_tile
 
 
 class App(QMainWindow):
@@ -36,6 +37,7 @@ class App(QMainWindow):
         self.backgroundTopLeft = {}
         self.backgroundBottomRight = {}
         self.oldGeometry = None
+        self.streetsWithGeometry = {}
 
         # Set application icon
         icon = None
@@ -224,9 +226,17 @@ class App(QMainWindow):
                            self.background_images[zoom_level])
 
         self.drawGeometryCollection(painter, rescaled_bbox, streetGeometry,  QColor(255, 0, 0))
-        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometries, QColor(0, 150, 0))
-        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHint, QColor(194, 245, 66))
-        self.drawGeometryCollection(painter, rescaled_bbox, guessedGeometriesWithHints, QColor(245, 230, 66))
+
+        self.streetsWithGeometry = {}
+        for name, geometry in guessedGeometries.items():
+            self.streetsWithGeometry[name] = self.drawGeometryCollection(painter, rescaled_bbox, geometry, QColor(0, 150, 0))
+
+        for name, geometry in guessedGeometriesWithHint.items():
+            self.streetsWithGeometry[name] = self.drawGeometryCollection(painter, rescaled_bbox, geometry, QColor(194, 245, 66))
+
+        for name, geometry in guessedGeometriesWithHints.items():
+            self.streetsWithGeometry[name] = self.drawGeometryCollection(painter, rescaled_bbox, geometry, QColor(245, 230, 66))
+
         painter.end()
         self.background_label.setPixmap(pixmap)
 
@@ -250,6 +260,7 @@ class App(QMainWindow):
                     x1, y1 = line[i]
                     x2, y2 = line[i + 1]
                     painter.drawLine(x1, y1, x2, y2)
+        return list(chain.from_iterable(sublist if isinstance(sublist, list) else [sublist] for sublist in pixels))
 
     def getRescaledBbox(self, geometry):
         height = 0.001 * self.scale
@@ -278,8 +289,6 @@ class App(QMainWindow):
 
         # Update the bbox with the new coordinates
         return new_minx, new_miny, new_maxx, new_maxy
-
-
 
 
     def determine_zoom(self, rescaled_bbox, centroid):

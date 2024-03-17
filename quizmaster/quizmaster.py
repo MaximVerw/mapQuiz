@@ -88,21 +88,21 @@ class QuizMaster:
 
     def getGuessedGeometries(self):
         # Create a list to store individual geometries
-        geometries_with_hint = []
-        geometries_with_hints = []
-        geometries_without_hint = []
+        geometries_with_hint = {}
+        geometries_with_hints = {}
+        geometries_without_hint = {}
         for streets in self.guessed_streets_list:
             # Iterate through geometryCollections
             for street in streets:
                 if street['name'] in self.guessed_streets_with_hint:
-                    geometries_with_hint.append(street['geometry'])
+                    geometries_with_hint[street['name']] = (street['geometry'])
                 elif street['name'] in self.guessed_streets_with_hints_2:
-                    geometries_with_hints.append(street['geometry'])
+                    geometries_with_hints[street['name']] = (street['geometry'])
                 else:
-                    geometries_without_hint.append(street['geometry'])
+                    geometries_without_hint[street['name']] = (street['geometry'])
 
         # Create a GeometryCollection from the geometries
-        return GeometryCollection(geometries_with_hints), GeometryCollection(geometries_with_hint), GeometryCollection(geometries_without_hint)
+        return geometries_with_hints, geometries_with_hint, geometries_without_hint
 
     def getGeometry(self):
         if self.current_street is None:
