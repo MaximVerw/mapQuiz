@@ -1,14 +1,16 @@
 import platform
 import random
 
-from PyQt5.QtWidgets import QMainWindow, QLabel, QCompleter, QProgressBar, QApplication, QPushButton
+from PyQt5.QtWidgets import QMainWindow, QLabel, QCompleter, QProgressBar, QApplication, QPushButton, QToolTip
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QImage, QMouseEvent, QIcon, QCloseEvent
 from PyQt5.QtCore import Qt, QTimer
+from shapely import Point
 
 from quizmaster.quizmaster import QuizMaster
 from widgets.MyLineEdit import MyLineEdit
 from widgets.imageloader import ImageLoader
-from osm.slippyTileUtil import coordToPixel, tile_to_latlon, latlon_to_tile
+from osm.slippyTileUtil import coordToPixel, tile_to_latlon, latlon_to_tile, pixelToCoord
+
 
 class App(QMainWindow):
     def __init__(self, waysByName, area_in_scope, easy_mode=False):
@@ -300,6 +302,12 @@ class App(QMainWindow):
         if event.button() == Qt.LeftButton or  event.button() == Qt.RightButton:
             self.dragging = True
             self.start_pos = event.pos()
+        if event.button() == Qt.RightButton:
+            # Example: show a tooltip when hovering over the logo
+            streetGeometry = self.quizmaster.getGeometry()
+            rescaled_bbox = self.getRescaledBbox(streetGeometry)
+            # TODO: store pixelcoords of streets and fetch them hereif streetGeometry.distance(pixelToCoord(event.globalPos().x(), event.globalPos().y(), rescaled_bbox, self.width, self.height))<1e-4:
+            QToolTip.showText(event.globalPos(), "This is the logo.")
 
     def mouseMoveEvent(self, event: QMouseEvent):
         try:

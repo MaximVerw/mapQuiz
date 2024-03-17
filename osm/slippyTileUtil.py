@@ -1,5 +1,8 @@
 import math
 
+from shapely import Point
+
+
 def latlon_to_tile(lat, lon, zoom):
     lat_rad = math.radians(lat)
     n = 2.0 ** zoom
